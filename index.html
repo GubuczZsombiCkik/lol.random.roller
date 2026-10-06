@@ -46,6 +46,16 @@ button.s:hover{border-color:var(--ac2)}
 .all{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 @media(max-width:520px){.all{grid-template-columns:repeat(3,1fr)}}
 .all .ch .lane{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+.prof{display:flex;flex-direction:column;gap:12px}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pn{font-size:18px;font-weight:800}.pr{font-size:12.5px;color:var(--mut)}
+.pw{font-size:34px;font-weight:800;color:var(--ac2);text-shadow:0 0 20px rgba(94,200,255,.35);text-align:right;line-height:1}
+.pw small{display:block;font-size:11px;color:var(--mut);font-weight:600;text-shadow:none;margin-top:3px}
+.form{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.form i{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:14px}
+.form .W{background:rgba(70,200,140,.18);color:#5ee0a4;border:1px solid rgba(70,200,140,.5)}
+.form .L{background:rgba(255,100,110,.15);color:#ff7b86;border:1px solid rgba(255,100,110,.45)}
+.form .R{background:rgba(150,160,190,.15);color:var(--mut);border:1px solid var(--bd)}
 .all h3{grid-column:1/-1;font-size:14px;color:var(--mut);font-weight:600}
 </style>
 </head>
@@ -55,6 +65,7 @@ button.s:hover{border-color:var(--ac2)}
     <h1>⚔ LEGGYENGÉBB ROLLER</h1>
     <div class="sub">A mai 10 legalacsonyabb winrate-ű champ lane-enként – rollolj közülük</div>
   </header>
+  <div class="card" id="profCard" hidden><div class="prof" id="prof"></div></div>
   <div class="tabs" id="tabs"></div>
   <div class="card">
     <div class="stage">
@@ -162,6 +173,19 @@ async function init(){
     render();
   }catch(e){}
 }
+async function loadProfile(){
+  try{
+    const p=await (await fetch("profile.json?"+Date.now())).json();
+    const w=p.last10.filter(x=>x==="W").length,l=p.last10.filter(x=>x==="L").length;
+    $("prof").innerHTML=`<div class="ph"><div><div class="pn">${esc(p.name)}</div>
+      <div class="pr">${esc(p.region)}${p.rank?" · "+esc(p.rank)+(p.lp?" · "+esc(p.lp)+" LP":""):""}${p.record?" · "+esc(p.record):""}</div></div>
+      <div class="pw">${p.winrate?esc(p.winrate)+"%":"–"}<small>WINRATE</small></div></div>
+      <div class="form">${p.last10.map(r=>`<i class="${r}">${r}</i>`).join("")}</div>
+      <div class="pr">Utolsó ${p.last10.length} meccs: ${w}W – ${l}L</div>`;
+    $("profCard").hidden=false;
+  }catch(e){}
+}
+loadProfile();
 init();
 </script>
 </body>
