@@ -23,6 +23,32 @@ JS_BLOCK = r"""()=>{
   if(n&&/\bLP\b|Unranked/i.test(n.innerText)&&n.innerText.length<700)return n.innerText}}
  return ''}"""
 
+def from_next(page):
+    """op.gg beágyazott (__NEXT_DATA__) adata: ez a legmegbízhatóbb forrás a rangra"""
+    try:
+        raw = page.evaluate("()=>{const e=document.getElementById('__NEXT_DATA__');return e?e.textContent:''}")
+        data = json.loads(raw) if raw else None
+    except Exception:
+        data = None
+    if not data:
+        print("    __NEXT_DATA__ nem található")
+        return None
+    found = []
+    def walk(o):
+        if isinstance(o, dict):
+            if isinstance(o.get("tier_info"), dict):
+                found.append(o)
+            for v in o.values(): walk(v)
+        elif isinstance(o, list):
+            for v in o: walk(v)
+    walk(data)
+    print(f"    __NEXT_DATA__: {len(found)} rang-bejegyzés")
+    for o in found:
+        if "SOLO" in json.dumps(o.get("queue_info", ""), ensure_ascii=False).upper():
+            print("    Solo bejegyzés:", json.dumps(o, ensure_ascii=False)[:400])
+            return o
+    return None
+
 def scrape_profile(page):
     page.goto(f"https://op.gg/lol/summoners/{REGION}/{quote(NAME)}-{TAG}", wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(6000)
@@ -63,6 +89,20 @@ def scrape_profile(page):
             "winrate": wr.group(1) if wr else (str(round(100 * int(rec.group(1)) / (int(rec.group(1)) + int(rec.group(2))))) if rec else ""),
             "rank": r, "lp": lp.group(1) if lp else "", "date": datetime.date.today().isoformat(),
             "updated": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    nd = from_next(page)
+    if nd:
+        ti = nd["tier_info"]
+        t = (ti.get("tier") or "").capitalize()
+        dv = ti.get("division")
+        prof["rank"] = (t + (f" {dv}" if dv and t not in ("Master", "Grandmaster", "Challenger") else "")) if t else "Unranked"
+        prof["lp"] = str(ti.get("lp", "")) if t else ""
+        w, l = nd.get("win"), nd.get("lose")
+        if isinstance(w, int) and isinstance(l, int) and w + l:
+            prof["record"] = f"{w}W {l}L"
+            prof["winrate"] = str(round(100 * w / (w + l)))
+    else:
+        for m in list(re.finditer(r"Challenger", body))[:3]:
+            print("    'Challenger' környezete:", body[max(0, m.start() - 80):m.end() + 80].replace("\n", " | "))
     print("    profil:", prof)
     return prof
 
