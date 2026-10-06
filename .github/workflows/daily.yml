@@ -3,6 +3,8 @@ on:
   schedule:
     - cron: "0 4 * * *"   # minden nap 04:00 UTC
   workflow_dispatch:       # kézi indítás gombbal
+concurrency:
+  group: scrape
 permissions:
   contents: write
 jobs:
@@ -20,4 +22,4 @@ jobs:
           git config user.name "bot"
           git config user.email "bot@users.noreply.github.com"
           git add data.json profile.json
-          git diff --staged --quiet || (git commit -m "Napi frissítés" && git push)
+          git diff --staged --quiet || (git commit -m "Napi frissítés" && git pull --rebase && git push)
