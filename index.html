@@ -5,156 +5,164 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LoL Leggyengébb Roller</title>
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
---bg:#f5f3ee;--card:#fff;--tx:#1b1a17;--mut:#77736a;--ac:#b8862b;--bd:#ddd8cc;--ok:#2f7d4f}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1419;--card:#17202a;--tx:#ece8dc;--mut:#8d98a3;--ac:#c8aa6e;--bd:#2a3744;--ok:#58b27c}}
-:root[data-theme="dark"]{--bg:#0e1419;--card:#17202a;--tx:#ece8dc;--mut:#8d98a3;--ac:#c8aa6e;--bd:#2a3744;--ok:#58b27c}
+:root{--bg:#070b16;--bg2:#0d1428;--card:rgba(20,29,56,.72);--bd:rgba(120,140,220,.18);--tx:#e8ecff;--mut:#8590b8;--ac:#8b7bff;--ac2:#5ec8ff;--gold:#e6c577}
+*{box-sizing:border-box;margin:0}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
-main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
-h1{font-size:22px;margin:0 0 2px;letter-spacing:.5px}
-.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
-.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
-.tab{flex:1;min-width:84px;padding:10px 8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;cursor:pointer;font-size:14px}
-.tab.on{border-color:var(--ac);color:var(--ac);font-weight:700}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
-.result{text-align:center;font-size:34px;font-weight:800;min-height:56px;padding:8px 0;color:var(--ac);word-break:break-word}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-button.p{flex:1;padding:12px;border:0;border-radius:8px;background:var(--ac);color:#111;font-weight:700;font-size:15px;cursor:pointer}
-button.s{padding:10px 12px;border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:8px;cursor:pointer;font-size:13px}
-ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-li{display:flex;justify-content:space-between;gap:6px;padding:7px 10px;border:1px solid var(--bd);border-radius:6px;font-size:14px}
-li.hit{border-color:var(--ac);background:rgba(200,170,110,.15)}
-li span{color:var(--mut)}
-textarea{width:100%;min-height:110px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:10px;font:inherit;font-size:14px}
-.warn{color:#c0392b;font-size:13px;margin:6px 0}
-.ok{color:var(--ok);font-size:13px;margin:6px 0}
-.all div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bd)}
-.all b{color:var(--ac)}
-details summary{cursor:pointer;font-weight:600}
+body{min-height:100vh;color:var(--tx);font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+  background:radial-gradient(900px 500px at 15% -10%,rgba(139,123,255,.22),transparent 60%),
+             radial-gradient(800px 500px at 100% 0%,rgba(94,200,255,.14),transparent 55%),
+             linear-gradient(180deg,var(--bg2),var(--bg));background-attachment:fixed;
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:760px;margin:0 auto;padding:28px 16px 48px}
+header{text-align:center;margin-bottom:22px}
+h1{font-size:28px;font-weight:800;letter-spacing:1px;background:linear-gradient(90deg,var(--ac2),var(--ac),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mut);font-size:13px;margin-top:4px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px}
+.tab{flex:1;min-width:88px;padding:11px 8px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--mut);cursor:pointer;font-size:14px;font-weight:600;transition:.2s;backdrop-filter:blur(6px)}
+.tab:hover{color:var(--tx)}
+.tab.on{color:#fff;border-color:var(--ac);background:linear-gradient(135deg,rgba(139,123,255,.45),rgba(94,200,255,.25));box-shadow:0 0 18px rgba(139,123,255,.35)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin-bottom:14px;backdrop-filter:blur(8px);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.stage{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0 14px}
+.big{width:128px;height:128px;border-radius:50%;border:3px solid var(--ac);background:#0b1020 center/cover;box-shadow:0 0 34px rgba(139,123,255,.55);display:flex;align-items:center;justify-content:center;font-size:44px;color:var(--mut);transition:.15s}
+.big.spin{animation:pulse .35s infinite alternate}
+@keyframes pulse{to{box-shadow:0 0 50px rgba(94,200,255,.8);border-color:var(--ac2)}}
+.rname{font-size:30px;font-weight:800;color:var(--gold);min-height:38px;text-align:center;text-shadow:0 0 20px rgba(230,197,119,.3)}
+.rwr{color:var(--mut);font-size:14px;min-height:20px}
+.btns{display:flex;gap:8px}
+button.p{flex:2;padding:13px;border:0;border-radius:11px;font-size:16px;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--ac),#5b7bff);box-shadow:0 6px 24px rgba(139,123,255,.45);transition:.15s}
+button.p:hover{transform:translateY(-1px)}
+button.s{flex:1;padding:13px;border-radius:11px;border:1px solid var(--bd);background:transparent;color:var(--tx);cursor:pointer;font-size:14px;font-weight:600}
+button.s:hover{border-color:var(--ac2)}
+.status{font-size:12.5px;color:var(--mut);text-align:center;margin:12px 0 4px}
+.status.warn{color:#ff9d8a}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+@media(max-width:520px){.grid{grid-template-columns:repeat(3,1fr)}.rname{font-size:24px}}
+.ch{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:12px;border:1px solid transparent;background:rgba(255,255,255,.03);transition:.15s}
+.ch .av{width:54px;height:54px;border-radius:50%;background:#0b1020 center/cover;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:700}
+.ch b{font-size:12px;font-weight:600;text-align:center;line-height:1.15}
+.ch span{font-size:11px;color:var(--ac2)}
+.ch.hit{border-color:var(--gold);background:rgba(230,197,119,.1);transform:scale(1.06);box-shadow:0 0 18px rgba(230,197,119,.3)}
+.ch.hit .av{border-color:var(--gold)}
+.all{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:520px){.all{grid-template-columns:repeat(3,1fr)}}
+.all .ch .lane{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+.all h3{grid-column:1/-1;font-size:14px;color:var(--mut);font-weight:600}
 </style>
 </head>
 <body>
 <main>
-<h1>⚔️ LoL Leggyengébb Roller</h1>
-<div class="sub">Napi 10 legrosszabb winrate-ű champ lane-enként – és rollolsz közülük.</div>
-<div class="tabs" id="tabs"></div>
-<div class="card">
-  <div class="result" id="res">–</div>
-  <div class="row">
-    <button class="p" id="roll">🎲 Roll</button>
-    <button class="s" id="rollAll">Mind az 5 lane</button>
-  </div>
-  <div id="stat" class="sub" style="margin:10px 0 0"></div>
-  <ul id="list"></ul>
-</div>
-<div class="card all" id="all" hidden></div>
-<div class="card">
-  <details id="imp">
-    <summary>📥 Napi import</summary>
-    <p class="sub">Másold be a mai legrosszabb 10 champet ehhez a lane-hez (soronként egy név, opcionálisan winrate-tel, pl. <code>Teemo 46.2</code>). Forrás pl. lolalytics / u.gg / op.gg tier list, winrate szerint növekvő sorrendben.</p>
-    <textarea id="ta" placeholder="Teemo 46.2&#10;Yorick 46.8&#10;..."></textarea>
-    <div class="row" style="margin-top:8px">
-      <button class="p" id="save">Mentés ehhez a lane-hez</button>
-      <button class="s" id="clr">Törlés</button>
+  <header>
+    <h1>⚔ LEGGYENGÉBB ROLLER</h1>
+    <div class="sub">A mai 10 legalacsonyabb winrate-ű champ lane-enként – rollolj közülük</div>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div class="card">
+    <div class="stage">
+      <div class="big" id="big">?</div>
+      <div class="rname" id="rname">Készen állsz?</div>
+      <div class="rwr" id="rwr"></div>
     </div>
-    <div id="msg"></div>
-  </details>
-</div>
+    <div class="btns">
+      <button class="p" id="roll">🎲 ROLL</button>
+      <button class="s" id="rollAll">Mind az 5 lane</button>
+    </div>
+    <div class="status" id="status">Betöltés…</div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="card" id="allCard" hidden><div class="all" id="all"></div></div>
 </main>
 <script>
 const LANES=["Top","Jungle","Mid","Bot","Support"];
-const KEY="lolroller.v1";
-let data={}, cur="Top", timer=null;
-const today=()=>new Date().toISOString().slice(0,10);
-try{data=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){data={}}
-const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+let cur="Top",data=null,timer=null,ver=null,idMap={};
 const $=id=>document.getElementById(id);
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function parse(t){
-  return t.split(/\n/).map(l=>l.trim()).filter(Boolean).slice(0,10).map(l=>{
-    const m=l.match(/^(.+?)[\s,;\t]+(\d{2}(?:[.,]\d+)?)\s*%?$/);
-    return m?{n:m[1].trim(),w:m[2].replace(",",".")}:{n:l.replace(/^\d+[.)]\s*/,""),w:""};
-  });
+function img(name){
+  if(!ver)return null;
+  const k=norm(name);
+  let id=idMap[k];
+  if(!id){const f=Object.keys(idMap).find(x=>x.startsWith(k)||k.startsWith(x));if(f)id=idMap[f]}
+  return id?`https://ddragon.leagueoflegends.com/cdn/${ver}/img/champion/${id}.png`:null;
 }
+function setAv(el,name){
+  const u=img(name);
+  if(u){el.style.backgroundImage=`url("${u}")`;el.textContent=""}
+  else{el.style.backgroundImage="none";el.textContent=name.slice(0,1)}
+}
+function items(l){return data&&data.lanes&&data.lanes[l]?data.lanes[l]:[]}
+
 function renderTabs(){
   $("tabs").innerHTML="";
   LANES.forEach(l=>{
     const b=document.createElement("button");
-    b.className="tab"+(l===cur?" on":"");
-    b.textContent=l;
-    b.onclick=()=>{cur=l;$("res").textContent="–";render()};
+    b.className="tab"+(l===cur?" on":"");b.textContent=l;
+    b.onclick=()=>{cur=l;resetStage();render()};
     $("tabs").appendChild(b);
   });
 }
+function resetStage(){$("big").style.backgroundImage="none";$("big").textContent="?";$("rname").textContent="Készen állsz?";$("rwr").textContent=""}
 function render(){
   renderTabs();
-  const d=data[cur];
-  const list=$("list");list.innerHTML="";
-  const stat=$("stat");
-  if(!d||!d.items.length){
-    stat.innerHTML='<span class="warn">Ehhez a lane-hez még nincs importált lista. Nyisd le a „Napi import" részt.</span>';
-    $("imp").open=true;
-  }else{
-    const old=d.date!==today();
-    stat.innerHTML=old?'<span class="warn">⚠️ Ez a lista a(z) '+d.date+' napról való – importáld újra a maira!</span>'
-                      :'<span class="ok">✔ Mai lista ('+d.items.length+' champ)</span>';
-    d.items.forEach((c,i)=>{
-      const li=document.createElement("li");li.id="c"+i;
-      li.innerHTML="<b>"+esc(c.n)+"</b><span>"+(c.w?c.w+"%":"")+"</span>";
-      list.appendChild(li);
-    });
-  }
-  $("ta").value=d?d.items.map(c=>c.n+(c.w?" "+c.w:"")).join("\n"):"";
+  const list=items(cur),g=$("grid");g.innerHTML="";
+  const st=$("status");st.className="status";
+  if(!data){st.textContent="Betöltés…";return}
+  if(!list.length){st.className="status warn";st.textContent="Ehhez a lane-hez nincs adat.";return}
+  const old=data.date!==new Date().toISOString().slice(0,10);
+  st.textContent=old?`⚠ A lista frissítve: ${data.date} (a mai még nem érkezett meg)`:`✔ Mai lista – ${data.date}`;
+  if(old)st.className="status warn";
+  list.forEach((c,i)=>{
+    const d=document.createElement("div");d.className="ch";d.id="c"+i;
+    d.innerHTML=`<div class="av"></div><b>${esc(c.n)}</b><span>${c.w?c.w+"%":""}</span>`;
+    setAv(d.querySelector(".av"),c.n);g.appendChild(d);
+  });
 }
-function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
-function pick(lane){const d=data[lane];if(!d||!d.items.length)return null;return Math.floor(Math.random()*d.items.length)}
-
+function show(c){
+  $("rname").textContent=c.n;$("rwr").textContent=c.w?`Winrate: ${c.w}%`:"";
+  setAv($("big"),c.n);
+}
+function mark(i){document.querySelectorAll(".ch.hit").forEach(x=>x.classList.remove("hit"));const e=$("c"+i);if(e)e.classList.add("hit")}
 function roll(){
-  const d=data[cur];if(!d||!d.items.length)return;
-  clearInterval(timer);
-  let n=0;const total=14;
+  const list=items(cur);if(!list.length)return;
+  clearInterval(timer);$("big").classList.add("spin");
+  let n=0;
   timer=setInterval(()=>{
-    const i=Math.floor(Math.random()*d.items.length);
-    $("res").textContent=d.items[i].n;
-    document.querySelectorAll("li").forEach(x=>x.classList.remove("hit"));
-    const li=$("c"+i);if(li)li.classList.add("hit");
-    if(++n>=total){
-      clearInterval(timer);
-      const f=pick(cur);
-      $("res").textContent=d.items[f].n;
-      document.querySelectorAll("li").forEach(x=>x.classList.remove("hit"));
-      $("c"+f).classList.add("hit");
+    const i=Math.floor(Math.random()*list.length);show(list[i]);mark(i);
+    if(++n>=16){
+      clearInterval(timer);$("big").classList.remove("spin");
+      const f=Math.floor(Math.random()*list.length);show(list[f]);mark(f);
     }
-  },70);
+  },75);
 }
 function rollAll(){
-  const box=$("all");let html="<div style='border:0'><b>Mind az 5 lane</b></div>",miss=false;
+  const box=$("all");box.innerHTML="<h3>Mind az 5 lane eredménye</h3>";
   LANES.forEach(l=>{
-    const i=pick(l);
-    if(i===null){miss=true;html+="<div><span>"+l+"</span><span class='sub'>nincs lista</span></div>"}
-    else html+="<div><span>"+l+"</span><b>"+esc(data[l].items[i].n)+"</b></div>";
+    const list=items(l);if(!list.length)return;
+    const c=list[Math.floor(Math.random()*list.length)];
+    const d=document.createElement("div");d.className="ch hit";
+    d.innerHTML=`<div class="lane">${l}</div><div class="av"></div><b>${esc(c.n)}</b><span>${c.w?c.w+"%":""}</span>`;
+    setAv(d.querySelector(".av"),c.n);box.appendChild(d);
   });
-  box.innerHTML=html;box.hidden=false;
+  $("allCard").hidden=false;
 }
-$("roll").onclick=roll;
-$("rollAll").onclick=rollAll;
-$("save").onclick=()=>{
-  const items=parse($("ta").value);
-  if(!items.length){$("msg").innerHTML='<div class="warn">Üres a lista.</div>';return}
-  data[cur]={date:today(),items};persist();
-  $("msg").innerHTML='<div class="ok">Mentve: '+items.length+' champ.</div>';
+$("roll").onclick=roll;$("rollAll").onclick=rollAll;
+
+async function init(){
+  renderTabs();
+  try{
+    const r=await fetch("data.json?"+Date.now());
+    data=await r.json();
+  }catch(e){$("status").className="status warn";$("status").textContent="A data.json még nem készült el – futtasd az Actions workflow-t.";return}
   render();
-};
-$("clr").onclick=()=>{delete data[cur];persist();$("msg").innerHTML="";render()};
-render();
-// Automatikus napi lista: a data.json-t a GitHub Action frissíti minden nap
-fetch("data.json?"+Date.now()).then(r=>r.ok?r.json():null).then(j=>{
-  if(!j||!j.lanes)return;
-  LANES.forEach(l=>{ if(j.lanes[l]&&j.lanes[l].length) data[l]={date:j.date,items:j.lanes[l]}; });
-  persist();render();
-}).catch(()=>{});
+  try{
+    const v=await (await fetch("https://ddragon.leagueoflegends.com/api/versions.json")).json();
+    ver=v[0];
+    const cj=await (await fetch(`https://ddragon.leagueoflegends.com/cdn/${ver}/data/en_US/champion.json`)).json();
+    Object.values(cj.data).forEach(c=>{idMap[norm(c.name)]=c.id;idMap[norm(c.id)]=c.id});
+    render();
+  }catch(e){}
+}
+init();
 </script>
 </body>
 </html>
