@@ -120,11 +120,11 @@ async function profile(){
     $("prof").innerHTML=`<div class="pn">${esc(p.name)}</div><div class="pr">${esc(p.region)}${p.record?" · "+esc(p.record):""}</div>
     ${p.rank?`<div class="badge">${esc(p.rank)}${p.lp?" · "+esc(p.lp)+" LP":""}</div>`:""}
     <div class="pw">${p.winrate?esc(p.winrate)+"%":"–"}<small>WINRATE</small></div>
-    <div class="form">${p.last10.map(r=>`<i class="${r}">${r}</i>`).join("")}</div><div class="pr">Utolsó ${p.last10.length} meccs: ${w}W – ${l}L</div>`;
+    <div class="form">${p.last10.map(r=>`<i class="${r}">${r}</i>`).join("")}</div><div class="pr">Utolsó ${p.last10.length} meccs: ${w}W – ${l}L</div>${p.updated?`<div class="pr" style="margin-top:6px;opacity:.7">Frissítve: ${new Date(p.updated).toLocaleString("hu-HU",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</div>`:""}`;
   }catch(e){$("prof").textContent="A profil még nem töltődött be."}
 }
 async function init(){
-  tabs();profile();
+  tabs();profile();setInterval(profile,300000);
   try{data=await(await fetch("data.json?"+Date.now())).json()}catch(e){$("status").className="status warn";$("status").textContent="A data.json még nem készült el – futtasd az Actions workflow-t.";return}
   render();
   try{ver=(await(await fetch("https://ddragon.leagueoflegends.com/api/versions.json")).json())[0];
