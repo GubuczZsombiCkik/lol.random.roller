@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LoL Leggyengébb Roller</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f5f3ee;--card:#fff;--tx:#1b1a17;--mut:#77736a;--ac:#b8862b;--bd:#ddd8cc;--ok:#2f7d4f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1419;--card:#17202a;--tx:#ece8dc;--mut:#8d98a3;--ac:#c8aa6e;--bd:#2a3744;--ok:#58b27c}}
+:root[data-theme="dark"]{--bg:#0e1419;--card:#17202a;--tx:#ece8dc;--mut:#8d98a3;--ac:#c8aa6e;--bd:#2a3744;--ok:#58b27c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:.5px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.tab{flex:1;min-width:84px;padding:10px 8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;cursor:pointer;font-size:14px}
+.tab.on{border-color:var(--ac);color:var(--ac);font-weight:700}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
+.result{text-align:center;font-size:34px;font-weight:800;min-height:56px;padding:8px 0;color:var(--ac);word-break:break-word}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button.p{flex:1;padding:12px;border:0;border-radius:8px;background:var(--ac);color:#111;font-weight:700;font-size:15px;cursor:pointer}
+button.s{padding:10px 12px;border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:8px;cursor:pointer;font-size:13px}
+ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+li{display:flex;justify-content:space-between;gap:6px;padding:7px 10px;border:1px solid var(--bd);border-radius:6px;font-size:14px}
+li.hit{border-color:var(--ac);background:rgba(200,170,110,.15)}
+li span{color:var(--mut)}
+textarea{width:100%;min-height:110px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:10px;font:inherit;font-size:14px}
+.warn{color:#c0392b;font-size:13px;margin:6px 0}
+.ok{color:var(--ok);font-size:13px;margin:6px 0}
+.all div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bd)}
+.all b{color:var(--ac)}
+details summary{cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>⚔️ LoL Leggyengébb Roller</h1>
+<div class="sub">Napi 10 legrosszabb winrate-ű champ lane-enként – és rollolsz közülük.</div>
+<div class="tabs" id="tabs"></div>
+<div class="card">
+  <div class="result" id="res">–</div>
+  <div class="row">
+    <button class="p" id="roll">🎲 Roll</button>
+    <button class="s" id="rollAll">Mind az 5 lane</button>
+  </div>
+  <div id="stat" class="sub" style="margin:10px 0 0"></div>
+  <ul id="list"></ul>
+</div>
+<div class="card all" id="all" hidden></div>
+<div class="card">
+  <details id="imp">
+    <summary>📥 Napi import</summary>
+    <p class="sub">Másold be a mai legrosszabb 10 champet ehhez a lane-hez (soronként egy név, opcionálisan winrate-tel, pl. <code>Teemo 46.2</code>). Forrás pl. lolalytics / u.gg / op.gg tier list, winrate szerint növekvő sorrendben.</p>
+    <textarea id="ta" placeholder="Teemo 46.2&#10;Yorick 46.8&#10;..."></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="p" id="save">Mentés ehhez a lane-hez</button>
+      <button class="s" id="clr">Törlés</button>
+    </div>
+    <div id="msg"></div>
+  </details>
+</div>
+</main>
+<script>
+const LANES=["Top","Jungle","Mid","Bot","Support"];
+const KEY="lolroller.v1";
+let data={}, cur="Top", timer=null;
+const today=()=>new Date().toISOString().slice(0,10);
+try{data=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){data={}}
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+const $=id=>document.getElementById(id);
+
+function parse(t){
+  return t.split(/\n/).map(l=>l.trim()).filter(Boolean).slice(0,10).map(l=>{
+    const m=l.match(/^(.+?)[\s,;\t]+(\d{2}(?:[.,]\d+)?)\s*%?$/);
+    return m?{n:m[1].trim(),w:m[2].replace(",",".")}:{n:l.replace(/^\d+[.)]\s*/,""),w:""};
+  });
+}
+function renderTabs(){
+  $("tabs").innerHTML="";
+  LANES.forEach(l=>{
+    const b=document.createElement("button");
+    b.className="tab"+(l===cur?" on":"");
+    b.textContent=l;
+    b.onclick=()=>{cur=l;$("res").textContent="–";render()};
+    $("tabs").appendChild(b);
+  });
+}
+function render(){
+  renderTabs();
+  const d=data[cur];
+  const list=$("list");list.innerHTML="";
+  const stat=$("stat");
+  if(!d||!d.items.length){
+    stat.innerHTML='<span class="warn">Ehhez a lane-hez még nincs importált lista. Nyisd le a „Napi import" részt.</span>';
+    $("imp").open=true;
+  }else{
+    const old=d.date!==today();
+    stat.innerHTML=old?'<span class="warn">⚠️ Ez a lista a(z) '+d.date+' napról való – importáld újra a maira!</span>'
+                      :'<span class="ok">✔ Mai lista ('+d.items.length+' champ)</span>';
+    d.items.forEach((c,i)=>{
+      const li=document.createElement("li");li.id="c"+i;
+      li.innerHTML="<b>"+esc(c.n)+"</b><span>"+(c.w?c.w+"%":"")+"</span>";
+      list.appendChild(li);
+    });
+  }
+  $("ta").value=d?d.items.map(c=>c.n+(c.w?" "+c.w:"")).join("\n"):"";
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function pick(lane){const d=data[lane];if(!d||!d.items.length)return null;return Math.floor(Math.random()*d.items.length)}
+
+function roll(){
+  const d=data[cur];if(!d||!d.items.length)return;
+  clearInterval(timer);
+  let n=0;const total=14;
+  timer=setInterval(()=>{
+    const i=Math.floor(Math.random()*d.items.length);
+    $("res").textContent=d.items[i].n;
+    document.querySelectorAll("li").forEach(x=>x.classList.remove("hit"));
+    const li=$("c"+i);if(li)li.classList.add("hit");
+    if(++n>=total){
+      clearInterval(timer);
+      const f=pick(cur);
+      $("res").textContent=d.items[f].n;
+      document.querySelectorAll("li").forEach(x=>x.classList.remove("hit"));
+      $("c"+f).classList.add("hit");
+    }
+  },70);
+}
+function rollAll(){
+  const box=$("all");let html="<div style='border:0'><b>Mind az 5 lane</b></div>",miss=false;
+  LANES.forEach(l=>{
+    const i=pick(l);
+    if(i===null){miss=true;html+="<div><span>"+l+"</span><span class='sub'>nincs lista</span></div>"}
+    else html+="<div><span>"+l+"</span><b>"+esc(data[l].items[i].n)+"</b></div>";
+  });
+  box.innerHTML=html;box.hidden=false;
+}
+$("roll").onclick=roll;
+$("rollAll").onclick=rollAll;
+$("save").onclick=()=>{
+  const items=parse($("ta").value);
+  if(!items.length){$("msg").innerHTML='<div class="warn">Üres a lista.</div>';return}
+  data[cur]={date:today(),items};persist();
+  $("msg").innerHTML='<div class="ok">Mentve: '+items.length+' champ.</div>';
+  render();
+};
+$("clr").onclick=()=>{delete data[cur];persist();$("msg").innerHTML="";render()};
+render();
+// Automatikus napi lista: a data.json-t a GitHub Action frissíti minden nap
+fetch("data.json?"+Date.now()).then(r=>r.ok?r.json():null).then(j=>{
+  if(!j||!j.lanes)return;
+  LANES.forEach(l=>{ if(j.lanes[l]&&j.lanes[l].length) data[l]={date:j.date,items:j.lanes[l]}; });
+  persist();render();
+}).catch(()=>{});
+</script>
+</body>
+</html>
