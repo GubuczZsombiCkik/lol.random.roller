@@ -1,5 +1,5 @@
 """op.gg -> profile.json (rang, winrate, utolsó 10 meccs) + data.json (a SAJÁT rangodnak megfelelő napi legrosszabb champek)"""
-import json, re, datetime
+import json, re, datetime, os
 from urllib.parse import quote
 from playwright.sync_api import sync_playwright
 
@@ -9,6 +9,7 @@ NAME = "HIPLETSLAYER"
 TAG = "OOOO"           # ha nullák (0000), írd át
 TIER_OVERRIDE = ""     # kézi rang-szűrő, pl. "emerald_plus"; üresen = a rangodból számolja
 # -----------------------
+MODE = os.environ.get("MODE", "all")   # "profile" = csak a profil (gyakori futás)
 LANES = {"Top": "top", "Jungle": "jungle", "Mid": "mid", "Bot": "adc", "Support": "support"}
 TIERMAP = {"iron": "ibsg", "bronze": "ibsg", "silver": "ibsg", "gold": "gold_plus", "platinum": "platinum_plus",
            "emerald": "emerald_plus", "diamond": "diamond_plus", "master": "master_plus",
@@ -24,7 +25,13 @@ JS_BLOCK = r"""()=>{
 
 def scrape_profile(page):
     page.goto(f"https://op.gg/lol/summoners/{REGION}/{quote(NAME)}-{TAG}", wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(9000)
+    page.wait_for_timeout(6000)
+    try:  # op.gg "Update" gomb: friss adat a Riot szerveréről
+        page.get_by_role("button", name=re.compile(r"^\s*Update", re.I)).first.click(timeout=4000)
+        page.wait_for_timeout(7000)
+        print("    Update gomb megnyomva")
+    except Exception:
+        print("    Update gomb nem található / nem kattintható")
     body = page.inner_text("body")
     print(f"--- profil: cím = {page.title()!r}")
     res = re.findall(r"\b(Victory|Defeat|Remake)\b", body)[:10]
@@ -35,8 +42,12 @@ def scrape_profile(page):
     if not blk:
         m = re.search(r"Ranked\s*Solo\s*/?\s*Duo(.{0,300})", body, re.S | re.I)
         blk = m.group(1) if m else ""
-    print("    Solo/Duo blokk:", blk.replace("\n", " | ")[:400] or "(nem találtam)")
-    rank = re.search(rf"\b({TIERS})\b\s*([1-4])?", blk, re.I)
+    print("    Solo/Duo blokk:", blk.replace("\n", " | ")[:700] or "(nem találtam)")
+    lpm = re.search(r"(\d+)\s*LP", blk)
+    rank = re.search(rf"\b({TIERS})\b\s*([1-4])?\s*{lpm.group(1)}\s*LP", blk, re.I | re.S) if lpm else None
+    if not rank and lpm:  # utolsó rangnév az LP előtt
+        pre = list(re.finditer(rf"\b({TIERS})\b\s*([1-4])?", blk[:lpm.start()], re.I))
+        rank = pre[-1] if pre else None
     unr = re.search(r"Unranked", blk, re.I)
     lp = re.search(r"(\d+)\s*LP", blk)
     rec = re.search(r"(\d+)\s*W\s*(\d+)\s*L", blk)
@@ -50,7 +61,8 @@ def scrape_profile(page):
             "last10": [{"Victory": "W", "Defeat": "L", "Remake": "R"}[x] for x in res],
             "record": f"{rec.group(1)}W {rec.group(2)}L" if rec else "",
             "winrate": wr.group(1) if wr else (str(round(100 * int(rec.group(1)) / (int(rec.group(1)) + int(rec.group(2))))) if rec else ""),
-            "rank": r, "lp": lp.group(1) if lp else "", "date": datetime.date.today().isoformat()}
+            "rank": r, "lp": lp.group(1) if lp else "", "date": datetime.date.today().isoformat(),
+            "updated": datetime.datetime.now(datetime.timezone.utc).isoformat()}
     print("    profil:", prof)
     return prof
 
@@ -80,6 +92,12 @@ with sync_playwright() as p:
         profile = scrape_profile(page)
     except Exception as e:
         print("Profil hiba:", e); profile = None
+    if MODE == "profile":
+        browser.close()
+        if profile:
+            json.dump(profile, open("profile.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+            raise SystemExit(0)
+        raise SystemExit("Profil hiba")
     tier = TIER_OVERRIDE or (TIERMAP.get(profile["rank"].split()[0].lower(), "") if profile and profile["rank"] else "")
     print("Használt rang-szűrő:", tier or "alapértelmezett")
     lanes, used = {}, ""
