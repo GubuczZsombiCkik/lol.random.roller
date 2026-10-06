@@ -49,17 +49,23 @@ def scrape_profile(page):
         print("    OLDAL SZÖVEGE (eleje):", body[:600].replace("\n", " | "))
         return None
     last = [{"Victory": "W", "Defeat": "L", "Remake": "R"}[r] for r in res]
-    rec = re.search(r"(\d+)\s*W\s*(\d+)\s*L", body)
-    wr = re.search(r"Win rate\s*(\d{1,3})\s*%", body, re.I)
-    rank = re.search(r"\b(Iron|Bronze|Silver|Gold|Platinum|Emerald|Diamond|Master|Grandmaster|Challenger)\s*([1-4])?", body)
-    lp = re.search(r"(\d+)\s*LP", body)
+    # a rang és a ranked statisztika a "Ranked Solo/Duo" blokk után áll
+    m = re.search(r"Ranked\s*Solo\s*/?\s*Duo(.{0,250})", body, re.S | re.I)
+    seg = m.group(1) if m else ""
+    print("    Solo/Duo blokk:", seg.replace("\n", " | ")[:250] or "(nem találtam)")
+    TIER = r"(Iron|Bronze|Silver|Gold|Platinum|Emerald|Diamond|Master|Grandmaster|Challenger)\s*([1-4])?"
+    rank = re.search(TIER, seg)
+    unranked = re.search(r"Unranked", seg, re.I)
+    lp = re.search(r"(\d+)\s*LP", seg)
+    rec = re.search(r"(\d+)\s*W\s*(\d+)\s*L", seg) or re.search(r"(\d+)\s*W\s*(\d+)\s*L", body)
+    wr = re.search(r"Win rate\s*(\d{1,3})\s*%", seg, re.I) or re.search(r"Win rate\s*(\d{1,3})\s*%", body, re.I)
     prof = {
         "name": f"{NAME}#{TAG}", "region": REGION.upper(),
         "last10": last,
         "record": f"{rec.group(1)}W {rec.group(2)}L" if rec else "",
         "winrate": wr.group(1) if wr else (
             str(round(100 * int(rec.group(1)) / (int(rec.group(1)) + int(rec.group(2))))) if rec else ""),
-        "rank": (rank.group(1) + (" " + rank.group(2) if rank.group(2) else "")) if rank else "",
+        "rank": (rank.group(1) + (" " + rank.group(2) if rank.group(2) else "")) if rank and not unranked else ("Unranked" if unranked else ""),
         "lp": lp.group(1) if lp else "",
         "date": datetime.date.today().isoformat(),
     }
